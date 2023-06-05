@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "707387524324",
+    "project_id": "cleanops-aafa8",
+    "storage_bucket": "cleanops-aafa8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:707387524324:android:abb249e89d0535f0fb98f1",
+        "android_client_info": {
+          "package_name": "com.spoorthy_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "707387524324-o8ool1s00t2s8f3sbkgum8nu1ccoecvs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOKP81qiwUjr_GJDMwu-jyIWceNdGxckk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "707387524324-o8ool1s00t2s8f3sbkgum8nu1ccoecvs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
