@@ -17,6 +17,8 @@
     "@react-native-firebase/messaging": "^17.4.2",
     "@react-navigation/native": "^6.1.6",
     "@react-navigation/native-stack": "^6.9.12",
+    "@rneui/base": "^4.0.0-rc.7",
+    "@rneui/themed": "^4.0.0-rc.7",
     "eventsource": "^2.0.2",
     "lottie-react-native": "^5.1.5",
     "pocketbase": "^0.13.1",
