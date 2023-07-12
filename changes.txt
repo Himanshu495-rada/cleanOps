@@ -1,0 +1,4 @@
+1. remove border from images,✅
+2. change close button from modal,✅
+3. solve priority issue,✅
+4. adjust text on issue screen,✅

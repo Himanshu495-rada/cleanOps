@@ -1,8 +1,14 @@
 import React, {useState} from 'react';
 import Carousel from 'react-native-snap-carousel';
-import {View, StyleSheet, Modal, Pressable, Text} from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Modal,
+  Pressable,
+  TouchableOpacity,
+} from 'react-native';
 import FastImage from 'react-native-fast-image';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Close from '../../assets/Close.png';
 
 function CarouselView(props) {
   let images = props.images;
@@ -58,33 +64,10 @@ function CarouselView(props) {
       <Modal animationType="fade" transparent={true} visible={modalVisible}>
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-            {/* <View style={styles.modalHeader}>
-              <View style={{flexDirection: 'row'}}>
-                <Pressable onPress={handleModalHide}>
-                  <Text
-                    style={{
-                      color: 'black',
-                      fontSize: 30,
-                      right: 0,
-                      top: 0,
-                    }}>
-                    x
-                  </Text>
-                </Pressable>
-              </View>
-            </View> */}
             <View>
-              <Pressable onPress={handleModalHide}>
-                <Text
-                  style={{
-                    color: 'black',
-                    fontSize: 30,
-                    textAlign: 'right',
-                    fontWeight: 'bold',
-                  }}>
-                  x
-                </Text>
-              </Pressable>
+              <TouchableOpacity onPress={handleModalHide}>
+                <FastImage source={Close} style={styles.closeBtn} />
+              </TouchableOpacity>
               <FastImage
                 source={{
                   uri: modalImage,
@@ -107,12 +90,13 @@ function CarouselView(props) {
 const styles = StyleSheet.create({
   img: {
     backgroundColor: 'white',
-    borderColor: 'black',
+    borderColor: 'white',
     borderWidth: 1,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
+    borderRadius: 10,
   },
   centeredView: {
     flex: 1,
@@ -133,10 +117,12 @@ const styles = StyleSheet.create({
     elevation: 5,
     width: '95%',
   },
-  modalHeader: {
-    flexDirection: 'row',
-    marginTop: 20,
-    marginHorizontal: 20,
+  closeBtn: {
+    width: 30,
+    height: 30,
+    marginLeft: 'auto',
+    marginTop: 10,
+    marginRight: -20,
   },
 });
 export default CarouselView;

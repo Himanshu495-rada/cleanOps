@@ -15,6 +15,7 @@ import {REACT_APP_URL} from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Card from '../components/card';
 import Table from '../components/table';
+import FastImage from 'react-native-fast-image';
 
 function Admin2({navigation}) {
   const pb = new PocketBase(REACT_APP_URL);
@@ -25,6 +26,7 @@ function Admin2({navigation}) {
   );
 
   const [refreshing, setRefreshing] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [records, setRecords] = useState([]);
   const [recordHigh, setRecordHigh] = useState([]);
   const [recordPending, setRecordPending] = useState([]);
@@ -110,7 +112,7 @@ function Admin2({navigation}) {
       console.log('error to delete token');
     }
     ToastAndroid.show('Logged out', ToastAndroid.SHORT);
-    navigation.navigate('Login');
+    navigation.navigate('Splash');
   }
 
   async function submitToken() {
@@ -143,111 +145,119 @@ function Admin2({navigation}) {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={collectData} />
         }>
-        <ImageBackground
-          source={require('../../assets/header-background.jpg')}
-          style={styles.header}>
-          <Image source={{uri: avtar}} style={styles.avatar} alt="Profile" />
-          <View>
-            <Text style={styles.userName}>{userName}</Text>
-            <Text style={styles.role}>{role}</Text>
-          </View>
-          <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
-            <Text style={{color: 'white'}}>LOGOUT</Text>
-          </TouchableOpacity>
-          <View></View>
-        </ImageBackground>
-        <View style={{flexDirection: 'row', justifyContent: 'center'}}>
+        <View style={styles.header}>
+          <Image
+            source={require('../../assets/Administrator_Male.png')}
+            style={styles.avatar}
+            alt="Profile"
+          />
+          <Text style={styles.role}>{role}</Text>
           <TouchableOpacity
-            onPress={() => {
-              setLstData(records);
-              setCardClicked1(true);
-              setCardClicked2(false);
-              setCardClicked3(false);
-              setCardClicked4(false);
-              setCardClicked(true);
-            }}>
-            <Card
-              title="Total Issues"
-              value={records.length}
-              img={require('../../assets/Box_Important.png')}
-              isClicked={cardClicked1}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              setLstData(recordPending);
-              setCardClicked2(true);
-              setCardClicked1(false);
-              setCardClicked3(false);
-              setCardClicked4(false);
-              setCardClicked(true);
-            }}>
-            <Card
-              title="Pending issues"
-              value={recordPending.length}
-              img={require('../../assets/Medium_Risk.png')}
-              isClicked={cardClicked2}
+            onPress={() => setModalVisible(true)}
+            style={styles.logoutBtn}>
+            <FastImage
+              source={require('../../assets/Logout.png')}
+              style={{width: 30, height: 30}}
             />
           </TouchableOpacity>
         </View>
-        <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-          <TouchableOpacity
-            onPress={() => {
-              setLstData(recordHigh);
-              setCardClicked3(true);
-              setCardClicked1(false);
-              setCardClicked2(false);
-              setCardClicked4(false);
-              setCardClicked(true);
-            }}>
-            <Card
-              title="High Priority"
-              value={recordHigh.length}
-              img={require('../../assets/High_Risk.png')}
-              isClicked={cardClicked3}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              setLstData(recordResolved);
-              setCardClicked4(true);
-              setCardClicked1(false);
-              setCardClicked2(false);
-              setCardClicked3(false);
-              setCardClicked(true);
-            }}>
-            <Card
-              title="Issues Solved"
-              value={recordResolved.length}
-              img={require('../../assets/Ok.png')}
-              isClicked={cardClicked4}
-            />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.row2}>
-          <TouchableOpacity
-            onPress={() => {
-              setLstData(recordInvalid);
-              setCardClicked(true);
-            }}>
-            <Text
-              style={{
-                color: '#0EA6D6',
-                textDecorationLine: 'underline',
-                marginLeft: 20,
-                fontSize: 18,
+        <View
+          style={{
+            marginTop: -50,
+            backgroundColor: '#ffffff',
+            borderRadius: 10,
+          }}>
+          <View style={{flexDirection: 'row', justifyContent: 'center'}}>
+            <TouchableOpacity
+              onPress={() => {
+                setLstData(records);
+                setCardClicked1(true);
+                setCardClicked2(false);
+                setCardClicked3(false);
+                setCardClicked4(false);
+                setCardClicked(true);
               }}>
-              Invalid Issues: {recordInvalid.length}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.issueBtn}
-            onPress={() => navigation.navigate('ReportIssue')}>
-            <Text style={{fontSize: 15, color: 'white'}}>REPORT ISSUE</Text>
-          </TouchableOpacity>
-        </View>
+              <Card
+                title="Total Issues"
+                value={records.length}
+                img={require('../../assets/Box_Important.png')}
+                isClicked={cardClicked1}
+                color="#AFDEF9"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setLstData(recordPending);
+                setCardClicked2(true);
+                setCardClicked1(false);
+                setCardClicked3(false);
+                setCardClicked4(false);
+                setCardClicked(true);
+              }}>
+              <Card
+                title="Pending issues"
+                value={recordPending.length}
+                img={require('../../assets/Spam.png')}
+                isClicked={cardClicked2}
+                color="#FDB019C7"
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={{flexDirection: 'row', justifyContent: 'center'}}>
+            <TouchableOpacity
+              onPress={() => {
+                setLstData(recordHigh);
+                setCardClicked3(true);
+                setCardClicked1(false);
+                setCardClicked2(false);
+                setCardClicked4(false);
+                setCardClicked(true);
+              }}>
+              <Card
+                title="High Priority"
+                value={recordHigh.length}
+                img={require('../../assets/High_Priority.png')}
+                isClicked={cardClicked3}
+                color="#FF6767"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setLstData(recordResolved);
+                setCardClicked4(true);
+                setCardClicked1(false);
+                setCardClicked2(false);
+                setCardClicked3(false);
+                setCardClicked(true);
+              }}>
+              <Card
+                title="Issues Solved"
+                value={recordResolved.length}
+                img={require('../../assets/Checkmark.png')}
+                isClicked={cardClicked4}
+                color="#80FF9C"
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.row2}>
+            <TouchableOpacity
+              onPress={() => {
+                setLstData(recordInvalid);
+                setCardClicked(true);
+              }}>
+              <Text style={styles.invalidBtn}>
+                Invalid Issues: {recordInvalid.length}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.issueBtn}
+              onPress={() => navigation.navigate('ReportIssue')}>
+              <Text style={{fontSize: 15, color: 'white'}}>REPORT ISSUE</Text>
+            </TouchableOpacity>
+          </View>
 
-        {cardClicked ? <Table data={lstData} /> : <Table data={records} />}
+          {cardClicked ? <Table data={lstData} /> : <Table data={records} />}
+        </View>
       </ScrollView>
     </View>
   );
@@ -255,41 +265,35 @@ function Admin2({navigation}) {
 
 const styles = StyleSheet.create({
   header: {
-    height: 100,
+    backgroundColor: '#0F175F',
+    height: 120,
     width: '100%',
     flexDirection: 'row',
+    alignItems: 'center',
   },
   avatar: {
-    height: 60,
-    width: 60,
-    borderRadius: 30,
-    marginTop: 20,
-    marginLeft: 20,
+    height: 80,
+    width: 80,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    marginBottom: 45,
   },
   userName: {
     fontSize: 20,
     color: 'white',
-    marginLeft: 20,
-    marginTop: 10,
+    marginBottom: 10,
   },
   role: {
-    fontSize: 20,
+    fontSize: 35,
     color: 'white',
-    marginLeft: 20,
-    marginTop: 20,
+    flex: 1,
+    textAlign: 'center',
+    marginBottom: 40,
+    marginRight: 20,
   },
   logoutBtn: {
-    backgroundColor: '#E05949',
-    width: 70,
-    height: 40,
-    borderRadius: 5,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 50,
-    position: 'absolute',
-    right: 0,
-    marginRight: 10,
+    marginRight: 20,
+    marginBottom: 50,
   },
   row2: {
     flexDirection: 'row',
@@ -304,14 +308,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 50,
   },
+  invalidBtn: {
+    color: '#0EA6D6',
+    textDecorationLine: 'underline',
+    marginLeft: 20,
+    fontSize: 18,
+  },
   issueBtn: {
-    backgroundColor: '#E05949',
-    width: '40%',
-    height: 30,
-    borderRadius: 15,
+    backgroundColor: '#B2110D',
+    width: 150,
+    height: 40,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 10,
+    marginLeft: 50,
+    alignSelf: 'center',
   },
 });
 

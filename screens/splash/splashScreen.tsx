@@ -12,6 +12,7 @@ import {
   Platform,
   PermissionsAndroid,
   AppRegistry,
+  Keyboard,
 } from 'react-native';
 import {StackActions} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,6 +22,7 @@ import PocketBase from 'pocketbase';
 import {REACT_APP_URL} from '@env';
 
 function SplashScreen({navigation}) {
+  const [display, setDisplay] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userData, setUserData] = useState(null);
@@ -28,6 +30,13 @@ function SplashScreen({navigation}) {
   const [press, setPress] = useState(true);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const moveAnim = useRef(new Animated.Value(0)).current;
+
+  const keyboardShowListener = Keyboard.addListener('keyboardDidShow', () => {
+    setDisplay(false);
+  });
+  const keyboardHideListener = Keyboard.addListener('keyboardDidHide', () => {
+    setDisplay(true);
+  });
 
   const pb = new PocketBase(REACT_APP_URL);
 
@@ -67,6 +76,7 @@ function SplashScreen({navigation}) {
         let userName = pb.authStore.model.username;
         let name = pb.authStore.model.name;
         let role = pb.authStore.model.designation;
+        let issueTable = pb.authStore.model.issueTable;
         let avtar =
           REACT_APP_URL +
           '/api/files/users/' +
@@ -82,6 +92,7 @@ function SplashScreen({navigation}) {
         );
         await AsyncStorage.setItem('login', 'true');
         await AsyncStorage.setItem('role', role);
+        await AsyncStorage.setItem('issueTable', issueTable);
         ToastAndroid.show('Logged in', ToastAndroid.SHORT);
         check();
       } else {
@@ -159,7 +170,7 @@ function SplashScreen({navigation}) {
   }, [moveAnim, fadeAnim]);
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior="padding">
+    <KeyboardAvoidingView style={styles.container} behavior="height">
       <Animated.Image
         source={require('../../assets/logocleanops.png')}
         style={{
@@ -177,7 +188,7 @@ function SplashScreen({navigation}) {
           alignItems: 'center',
           opacity: fadeAnim,
         }}>
-        <Text style={styles.title}>WELCOME!</Text>
+        <Text style={styles.title}>Welcome</Text>
         <View style={styles.inputBox}>
           <TextInput
             placeholder="Username"
@@ -217,14 +228,16 @@ function SplashScreen({navigation}) {
           <Text style={styles.loginButtonText}>LOGIN</Text>
         </TouchableOpacity>
       </Animated.View>
-      
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Powered By</Text>
-        <Image
-          source={require('../../assets/spoorthy_logo.jpeg')}
-          style={styles.footerLogo}
-        />
-      </View>
+
+      {display ? (
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Powered By</Text>
+          <Image
+            source={require('../../assets/spoorthy_logo.jpeg')}
+            style={styles.footerLogo}
+          />
+        </View>
+      ) : null}
     </KeyboardAvoidingView>
   );
 }
@@ -237,12 +250,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 20,
     opacity: 1,
     color: 'black',
     textAlign: 'center',
     marginTop: 100,
+    fontStyle: 'italic',
   },
   footer: {
     flexDirection: 'row',
@@ -274,7 +287,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   input: {
-    fontSize: 24,
+    fontSize: 18,
   },
   loginButton: {
     backgroundColor: '#5084D2',

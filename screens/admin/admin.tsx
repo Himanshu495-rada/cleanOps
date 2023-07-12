@@ -3,27 +3,26 @@ import {
   View,
   Text,
   StyleSheet,
-  ImageBackground,
   Image,
   TouchableOpacity,
   ToastAndroid,
   ScrollView,
   RefreshControl,
+  Modal,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Card from '../components/card';
 import Table from '../components/table';
 import PocketBase from 'pocketbase';
 import {REACT_APP_URL} from '@env';
+import {Skeleton} from '@rneui/themed';
+import FastImage from 'react-native-fast-image';
 
 function Admin({navigation}) {
   const [userName, setUserName] = useState('');
   const [role, setRole] = useState('');
-  const [avtar, setAvtar] = useState(
-    'https://www.google.com/url?sa=i&url=https%3A%2F%2Fpixabay.com%2Fvectors%2Fblank-profile-picture-mystery-man-973460%2F&psig=AOvVaw3JTWdSSJKAxIhCznFLmD7Z&ust=1681810602823000&source=images&cd=vfe&ved=0CBEQjRxqFwoTCLDk7O7OsP4CFQAAAAAdAAAAABAE',
-  );
-
   const [refreshing, setRefreshing] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [records, setRecords] = useState([]);
   const [recordHigh, setRecordHigh] = useState([]);
   const [recordPending, setRecordPending] = useState([]);
@@ -35,10 +34,13 @@ function Admin({navigation}) {
   const [cardClicked3, setCardClicked3] = useState(false);
   const [cardClicked4, setCardClicked4] = useState(false);
   const [lstData, setLstData] = useState([]);
+  const [issueTable, setIssueTable] = useState('');
 
   const pb = new PocketBase(REACT_APP_URL);
 
   async function collectData() {
+    let i_table = await AsyncStorage.getItem('issueTable');
+    setIssueTable(i_table);
     let loginStatus = await AsyncStorage.getItem('login');
     if (loginStatus === 'true') {
       let credentials = await AsyncStorage.getItem('credentials');
@@ -48,24 +50,17 @@ function Admin({navigation}) {
         if (pb.authStore.isValid) {
           let name = pb.authStore.model.name;
           let role = pb.authStore.model.designation;
-          let avtar =
-            REACT_APP_URL +
-            '/api/files/users/' +
-            pb.authStore.model.id +
-            '/' +
-            pb.authStore.model.avatar;
           setUserName(name);
           setRole(role);
-          setAvtar(avtar);
         }
       }
 
       const data = await pb
-        .collection('issues')
+        .collection(i_table)
         .getFullList(200 /* batch size */, {
           sort: '-created',
         });
-      //console.log(data);
+
       setRecords(data);
 
       const data2 = [];
@@ -111,7 +106,7 @@ function Admin({navigation}) {
       console.log('error to delete token');
     }
     ToastAndroid.show('Logged out', ToastAndroid.SHORT);
-    navigation.navigate('Login');
+    navigation.navigate('Splash');
   }
 
   async function submitToken() {
@@ -140,89 +135,122 @@ function Admin({navigation}) {
   }, []);
   return (
     <View>
+      <Modal visible={modalVisible} transparent={true}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalText}>
+              Are you sure you want to logout?
+            </Text>
+            <View style={styles.modalButtonsContainer}>
+              <TouchableOpacity onPress={logout}>
+                <Text style={styles.modalButton}>Yes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Text style={styles.modalButton}>No</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={collectData} />
-        }>
-        <ImageBackground
-          source={require('../../assets/header-background.jpg')}
-          style={styles.header}>
-          <Image source={{uri: avtar}} style={styles.avatar} alt="Profile" />
-          <View>
-            <Text style={styles.userName}>{userName.substring(0, 12)}...</Text>
-            <Text style={styles.role}>{role}</Text>
-          </View>
-          <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
-            <Text style={{color: 'white'}}>LOGOUT</Text>
-          </TouchableOpacity>
-        </ImageBackground>
-        <View style={{flexDirection: 'row', justifyContent: 'center'}}>
+        }
+        style={{backgroundColor: 'white'}}>
+        <View style={styles.header}>
+          <Image
+            source={require('../../assets/Administrator_Male.png')}
+            style={styles.avatar}
+            alt="Profile"
+          />
+          <Text style={styles.role}>{role}</Text>
           <TouchableOpacity
-            onPress={() => {
-              setLstData(records);
-              setCardClicked1(true);
-              setCardClicked2(false);
-              setCardClicked3(false);
-              setCardClicked4(false);
-              setCardClicked(true);
-            }}>
-            <Card
-              title="Total Issues"
-              value={records.length}
-              img={require('../../assets/Box_Important.png')}
-              isClicked={cardClicked1}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              setLstData(recordPending);
-              setCardClicked2(true);
-              setCardClicked1(false);
-              setCardClicked3(false);
-              setCardClicked4(false);
-              setCardClicked(true);
-            }}>
-            <Card
-              title="Pending issues"
-              value={recordPending.length}
-              img={require('../../assets/Medium_Risk.png')}
-              isClicked={cardClicked2}
+            onPress={() => setModalVisible(true)}
+            style={styles.logoutBtn}>
+            <FastImage
+              source={require('../../assets/Logout.png')}
+              style={{width: 30, height: 30}}
             />
           </TouchableOpacity>
         </View>
-        <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-          <TouchableOpacity
-            onPress={() => {
-              setLstData(recordHigh);
-              setCardClicked3(true);
-              setCardClicked1(false);
-              setCardClicked2(false);
-              setCardClicked4(false);
-              setCardClicked(true);
-            }}>
-            <Card
-              title="High Priority"
-              value={recordHigh.length}
-              img={require('../../assets/High_Risk.png')}
-              isClicked={cardClicked3}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              setLstData(recordResolved);
-              setCardClicked4(true);
-              setCardClicked1(false);
-              setCardClicked2(false);
-              setCardClicked3(false);
-              setCardClicked(true);
-            }}>
-            <Card
-              title="Issues Solved"
-              value={recordResolved.length}
-              img={require('../../assets/Ok.png')}
-              isClicked={cardClicked4}
-            />
-          </TouchableOpacity>
+        <View
+          style={{
+            marginTop: -50,
+            backgroundColor: '#ffffff',
+            borderRadius: 10,
+          }}>
+          <View style={{flexDirection: 'row', justifyContent: 'center'}}>
+            <TouchableOpacity
+              onPress={() => {
+                setLstData(records);
+                setCardClicked1(true);
+                setCardClicked2(false);
+                setCardClicked3(false);
+                setCardClicked4(false);
+                setCardClicked(true);
+              }}>
+              <Card
+                title="Total Issues"
+                value={records.length}
+                img={require('../../assets/Box_Important.png')}
+                isClicked={cardClicked1}
+                color="#AFDEF9"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setLstData(recordPending);
+                setCardClicked2(true);
+                setCardClicked1(false);
+                setCardClicked3(false);
+                setCardClicked4(false);
+                setCardClicked(true);
+              }}>
+              <Card
+                title="Pending issues"
+                value={recordPending.length}
+                img={require('../../assets/Spam.png')}
+                isClicked={cardClicked2}
+                color="#FDB019C7"
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={{flexDirection: 'row', justifyContent: 'center'}}>
+            <TouchableOpacity
+              onPress={() => {
+                setLstData(recordHigh);
+                setCardClicked3(true);
+                setCardClicked1(false);
+                setCardClicked2(false);
+                setCardClicked4(false);
+                setCardClicked(true);
+              }}>
+              <Card
+                title="High Priority"
+                value={recordHigh.length}
+                img={require('../../assets/High_Priority.png')}
+                isClicked={cardClicked3}
+                color="#FF6767"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setLstData(recordResolved);
+                setCardClicked4(true);
+                setCardClicked1(false);
+                setCardClicked2(false);
+                setCardClicked3(false);
+                setCardClicked(true);
+              }}>
+              <Card
+                title="Issues Solved"
+                value={recordResolved.length}
+                img={require('../../assets/Checkmark.png')}
+                isClicked={cardClicked4}
+                color="#80FF9C"
+              />
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.row2}>
           <TouchableOpacity
@@ -232,17 +260,19 @@ function Admin({navigation}) {
             }}>
             <Text
               style={{
-                color: '#0EA6D6',
+                color: '#043767',
                 textDecorationLine: 'underline',
                 marginLeft: 20,
-                fontSize: 18,
+                fontSize: 16,
               }}>
               Invalid Issues: {recordInvalid.length}
             </Text>
           </TouchableOpacity>
         </View>
         <View style={styles.row2}>
-          <TouchableOpacity style={styles.reqBtn}>
+          <TouchableOpacity
+            style={styles.reqBtn}
+            onPress={() => navigation.navigate('RaiseRequest')}>
             <Text style={{fontSize: 15, color: 'white'}}>RAISE REQUEST</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -260,63 +290,84 @@ function Admin({navigation}) {
 
 const styles = StyleSheet.create({
   header: {
-    height: 100,
+    backgroundColor: '#0F175F',
+    height: 120,
     width: '100%',
     flexDirection: 'row',
+    alignItems: 'center',
   },
   avatar: {
-    height: 60,
-    width: 60,
-    borderRadius: 30,
-    marginTop: 20,
+    height: 50,
+    width: 50,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    marginBottom: 25,
     marginLeft: 20,
   },
   userName: {
     fontSize: 20,
     color: 'white',
-    marginLeft: 20,
-    marginTop: 10,
+    marginBottom: 10,
   },
   role: {
-    fontSize: 20,
+    fontSize: 32,
     color: 'white',
-    marginLeft: 20,
-    marginTop: 20,
+    flex: 1,
+    textAlign: 'center',
+    marginBottom: 40,
+    marginRight: 20,
   },
   logoutBtn: {
-    backgroundColor: '#E05949',
-    width: 70,
-    height: 40,
-    borderRadius: 5,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 50,
-    position: 'absolute',
-    right: 10,
+    marginRight: 20,
+    marginBottom: 50,
   },
   row2: {
-    flexDirection: 'row',
     marginTop: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: 'row',
   },
   reqBtn: {
-    backgroundColor: '#779EE4',
-    width: '40%',
-    height: 30,
-    borderRadius: 15,
+    flex: 1,
+    backgroundColor: '#043767',
+    width: 150,
+    height: 40,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 10,
   },
   issueBtn: {
-    backgroundColor: '#E05949',
-    width: '40%',
-    height: 30,
-    borderRadius: 15,
+    flex: 1,
+    backgroundColor: '#B2110D',
+    width: 150,
+    height: 40,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    marginHorizontal: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalText: {
+    fontSize: 20,
+    marginBottom: 20,
+  },
+  modalButtonsContainer: {
+    flexDirection: 'row',
+    marginLeft: 'auto',
+  },
+  modalButton: {
+    fontSize: 16,
+    color: 'black',
     marginHorizontal: 10,
   },
 });

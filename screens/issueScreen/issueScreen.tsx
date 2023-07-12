@@ -10,10 +10,10 @@ import {
   Pressable,
   Modal,
   ToastAndroid,
+  TouchableOpacity,
 } from 'react-native';
 import SelectDropdown from 'react-native-select-dropdown';
 import FastImage from 'react-native-fast-image';
-import headerImage from '../../assets/Red_Risk.png';
 import PocketBase from 'pocketbase';
 import {REACT_APP_URL} from '@env';
 import CarouselView from '../components/carousel';
@@ -22,6 +22,8 @@ import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import uploadingAnimation from '../../assets/uploading.json';
 import doneAnimation from '../../assets/done.json';
 import LottieView from 'lottie-react-native';
+import Back from '../../assets/Back.png';
+import High_Priority from '../../assets/High_Priority.png';
 
 function IssueScreen({navigation}) {
   const popAction = StackActions.pop(1);
@@ -30,7 +32,7 @@ function IssueScreen({navigation}) {
   //const id = 'ialjqrw64603tgw';
   const pb = new PocketBase(REACT_APP_URL);
   const p = ['high', 'normal', 'invalid'];
-  const c = ['others', 'electrical', 'civil', 'cleaning'];
+  const c = ['electrical', 'cleaning', 'civil', 'others'];
 
   const [modalVisible3, setModalVisible3] = useState(false);
   const handleModalShow3 = () => setModalVisible3(true);
@@ -40,6 +42,8 @@ function IssueScreen({navigation}) {
   const handleModalShow4 = () => setModalVisible4(true);
   const handleModalHide4 = () => setModalVisible4(false);
 
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [selectedOption2, setSelectedOption2] = useState(null);
   const [message, setMessage] = useState('');
   const [selectedImages, setSelectedImages] = useState([]);
   const [category, setCategory] = useState('');
@@ -55,9 +59,36 @@ function IssueScreen({navigation}) {
   });
   const [priority, setPriority] = useState('');
 
+  const options = [
+    {id: 1, label: 'High'},
+    {id: 2, label: 'Normal'},
+    {id: 3, label: 'Invalid'},
+  ];
+
+  const options2 = [
+    {id: 1, label: 'Electrical'},
+    {id: 2, label: 'Cleaning'},
+    {id: 3, label: 'Civil'},
+    {id: 4, label: 'Others'},
+  ];
+
+  const handleOptionSelect = id => {
+    setSelectedOption(id);
+    setPriority(id - 1);
+  };
+
+  const handleOptionSelect2 = id => {
+    setSelectedOption2(id);
+    setCategory(id - 1);
+    console.log(id - 1);
+  };
+
   async function collectData() {
     let record = await pb.collection('issues').getOne(id);
     setData(record);
+    setSelectedOption(p.indexOf(record.priority) + 1);
+    setSelectedOption2(c.indexOf(record.category) + 1);
+    console.log(c.indexOf(record.category) + 1);
   }
 
   const handleMessageChange = e => {
@@ -181,6 +212,10 @@ function IssueScreen({navigation}) {
     }
   }
 
+  function back() {
+    navigation.dispatch(popAction);
+  }
+
   useEffect(() => {
     collectData();
   }, []);
@@ -188,175 +223,234 @@ function IssueScreen({navigation}) {
   return (
     <ScrollView>
       <View style={styles.header}>
-        <FastImage source={headerImage} style={{width: 60, height: 60}} />
-        <Text style={styles.headerText}>Issue Tracker</Text>
-      </View>
-      <View style={{marginHorizontal: 20}}>
-        <Text style={{color: 'black'}}>
-          Track the issues based on images and description reported, resolve and
-          upload the photo of the same
-        </Text>
-      </View>
-      <View
-        style={{
-          borderBottomColor: 'black',
-          borderBottomWidth: 1,
-          marginTop: 10,
-        }}
-      />
-      <View
-        style={{
-          justifyContent: 'center',
-          marginTop: 20,
-          alignItems: 'center',
-        }}>
-        <CarouselView images={data.images} id={data.id} />
-      </View>
-      <View style={{marginLeft: 20, marginTop: 20}}>
-        <View style={{marginTop: 20, flexDirection: 'row'}}>
-          <Text style={styles.detailsText}>
-            Issue ID :- <Text style={styles.detailsInText}>{data.id}</Text>
-          </Text>
+        <Pressable onPress={back}>
+          <FastImage source={Back} style={{width: 50, height: 50}} />
+        </Pressable>
+        <View>
+          <Text style={styles.headerText}>{data.floor}</Text>
+          <Text style={{color: 'white', marginLeft: 10}}>{data.id}</Text>
         </View>
-
-        <View style={{marginTop: 20, flexDirection: 'row'}}>
-          <Text style={styles.detailsText}>
-            Description :-{' '}
-            <Text style={styles.detailsInText}>{data.description}</Text>
-          </Text>
-        </View>
-
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <Text style={styles.detailsText}>Priority :-</Text>
-          <SelectDropdown
-            data={p}
-            onSelect={(index, value) => setPriority(value)}
-            defaultButtonText={data.priority}
-            buttonStyle={{
-              backgroundColor: 'white',
-              width: 100,
-              height: 30,
-              borderRadius: 15,
-              borderWidth: 1,
-              marginRight: 10,
-            }}
-          />
-        </View>
-
-        <View
-          style={{marginTop: 20, flexDirection: 'row', alignItems: 'center'}}>
-          <Text style={styles.detailsText}>Category :- </Text>
-          <SelectDropdown
-            data={c}
-            onSelect={(index, value) => setCategory(value)}
-            defaultButtonText={data.category}
-            buttonStyle={{
-              backgroundColor: 'white',
-              width: 120,
-              height: 30,
-              borderRadius: 15,
-              borderWidth: 1,
-              marginRight: 10,
-            }}
-          />
-        </View>
-
-        <View style={{marginTop: 20, flexDirection: 'row'}}>
-          <Text style={styles.detailsText}>
-            Reported on :-{' '}
-            <Text style={styles.detailsInText}>
-              {data.created.split('.')[0]}
-            </Text>
-          </Text>
-        </View>
-
-        <View style={{marginTop: 20, flexDirection: 'row'}}>
-          <Text style={styles.detailsText}>
-            Floor :- <Text style={styles.detailsInText}>{data.floor}</Text>
-          </Text>
-        </View>
-
-        <Text
+        <FastImage
+          source={High_Priority}
           style={{
-            fontSize: 15,
-            color: 'black',
-            fontWeight: 'bold',
-            marginTop: 20,
-          }}>
-          Solution :-{' '}
-        </Text>
-        <TextInput
-          placeholder="Enter the solution"
-          textAlign="center"
-          placeholderTextColor="gray"
-          style={styles.messageInput}
-          onChangeText={text => setMessage(text)}
+            width: 40,
+            height: 40,
+            marginLeft: 'auto',
+            marginRight: 20,
+            marginTop: 10,
+          }}
         />
-        <Text
-          style={{
-            fontSize: 15,
-            color: 'black',
-            fontWeight: 'bold',
-            marginTop: 20,
-          }}>
-          Result Image :-{' '}
-        </Text>
-        <View style={styles.messageInput}>
-          <Pressable onPress={openCamera}>
-            {selectedImages != '' ? (
-              <View>
-                <Icon
-                  name="close"
-                  size={20}
-                  color="red"
-                  onPress={() => setSelectedImages('')}
-                  style={{position: 'absolute', left: 80, top: 0}}
-                />
-                <FastImage
-                  source={{uri: selectedImages[0]}}
-                  style={{width: 70, height: 70}}
-                />
-              </View>
-            ) : (
-              <View style={{flexDirection: 'row'}}>
-                <Pressable style={styles.uploadIcons} onPress={openCamera}>
-                  <Icon name="camera" size={35} color="gray" />
-                  <Text style={{color: 'gray'}}>Capture</Text>
-                </Pressable>
-                <Text>OR</Text>
-                <Pressable style={styles.uploadIcons} onPress={openGallery}>
-                  <Icon name="folder" size={35} color="gray" />
-                  <Text style={{color: 'gray'}}>Upload</Text>
-                </Pressable>
-              </View>
-            )}
-          </Pressable>
-        </View>
+      </View>
+      <View
+        style={{
+          marginTop: -80,
+          backgroundColor: 'white',
+          borderRadius: 10,
+        }}>
         <View
           style={{
-            alignItems: 'center',
             justifyContent: 'center',
-            flexDirection: 'row',
+            marginTop: 20,
           }}>
-          {(priority != '' || category != '') &&
-          (message === '' || selectedImages === '') ? (
-            <Pressable style={styles.submitBtnE} onPress={save}>
-              <Text style={styles.btnText}>Save</Text>
+          <CarouselView images={data.images} id={data.id} />
+          <View style={{marginHorizontal: 20}}>
+            <Text style={{color: 'black', fontSize: 14, marginTop: 10}}>
+              {data.description}
+            </Text>
+            <Text style={{color: 'black', fontSize: 14, marginTop: 5}}>
+              Reported on {data.created.split('.')[0]}
+            </Text>
+          </View>
+        </View>
+        <View style={{marginLeft: 20, marginTop: 10}}>
+          <View style={{marginTop: 20, flexDirection: 'row'}}>
+            <Text style={styles.detailsText}>
+              Priority<Text style={{color: 'red', fontSize: 16}}>*</Text>:-{' '}
+              {options.map(option => (
+                <View
+                  key={option.id}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: 20,
+                  }}>
+                  <TouchableOpacity
+                    style={[
+                      styles.option,
+                      selectedOption === option.id && styles.selectedOption,
+                    ]}
+                    onPress={() => handleOptionSelect(option.id)}
+                  />
+                  <Text style={styles.optionLabel}>{option.label}</Text>
+                </View>
+              ))}
+            </Text>
+          </View>
+
+          <View style={{marginTop: 20, flexDirection: 'row'}}>
+            <Text style={styles.detailsText}>
+              Category<Text style={{color: 'red', fontSize: 16}}>*</Text>:-{' '}
+            </Text>
+            <View
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+              <View style={{flexDirection: 'row'}}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: 20,
+                    width: 120,
+                  }}>
+                  <TouchableOpacity
+                    style={[
+                      styles.option,
+                      selectedOption2 === 1 && styles.selectedOption,
+                    ]}
+                    onPress={() => handleOptionSelect2(1)}
+                  />
+                  <Text style={styles.optionLabel}>Electrical</Text>
+                </View>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: 20,
+                    width: 120,
+                  }}>
+                  <TouchableOpacity
+                    style={[
+                      styles.option,
+                      selectedOption2 === 2 && styles.selectedOption,
+                    ]}
+                    onPress={() => handleOptionSelect2(2)}
+                  />
+                  <Text style={styles.optionLabel}>Cleaning</Text>
+                </View>
+              </View>
+              <View style={{flexDirection: 'row'}}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: 20,
+                    width: 120,
+                  }}>
+                  <TouchableOpacity
+                    style={[
+                      styles.option,
+                      selectedOption2 === 3 && styles.selectedOption,
+                    ]}
+                    onPress={() => handleOptionSelect2(3)}
+                  />
+                  <Text style={styles.optionLabel}>Civil</Text>
+                </View>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: 20,
+                    width: 120,
+                  }}>
+                  <TouchableOpacity
+                    style={[
+                      styles.option,
+                      selectedOption2 === 4 && styles.selectedOption,
+                    ]}
+                    onPress={() => handleOptionSelect2(4)}
+                  />
+                  <Text style={styles.optionLabel}>Others</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          <Text
+            style={{
+              fontSize: 15,
+              color: 'black',
+              marginTop: 20,
+            }}>
+            Add Photos<Text style={{color: 'red'}}>*</Text> :-
+          </Text>
+          <View style={styles.messageInput}>
+            <Pressable onPress={openCamera}>
+              {selectedImages != '' ? (
+                <View>
+                  <Icon
+                    name="close"
+                    size={20}
+                    color="red"
+                    onPress={() => setSelectedImages('')}
+                    style={{position: 'absolute', left: 80, top: 0}}
+                  />
+                  <FastImage
+                    source={{uri: selectedImages[0]}}
+                    style={{width: 70, height: 70}}
+                  />
+                </View>
+              ) : (
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <Pressable style={styles.uploadIcons} onPress={openCamera}>
+                    <Icon name="camera" size={35} color="gray" />
+                    <Text style={{color: 'gray'}}>Capture</Text>
+                  </Pressable>
+                  <Text>OR</Text>
+                  <Pressable style={styles.uploadIcons} onPress={openGallery}>
+                    <Icon name="folder" size={35} color="gray" />
+                    <Text style={{color: 'gray'}}>Upload</Text>
+                  </Pressable>
+                </View>
+              )}
             </Pressable>
-          ) : (
-            <Pressable style={styles.submitBtnD}>
-              <Text style={styles.btnText}>Save</Text>
-            </Pressable>
-          )}
-          {message != '' && selectedImages != '' ? (
-            <Pressable style={styles.submitBtnE} onPress={submit}>
-              <Text style={styles.btnText}>Resolve</Text>
-            </Pressable>
-          ) : (
-            <Pressable style={styles.submitBtnD}>
-              <Text style={styles.btnText}>Resolve</Text>
-            </Pressable>
-          )}
+          </View>
+
+          <Text
+            style={{
+              fontSize: 15,
+              color: 'black',
+              fontWeight: 'bold',
+              marginTop: 20,
+            }}>
+            Solution<Text style={{color: 'red'}}>*</Text> :-
+          </Text>
+          <TextInput
+            placeholder="Write the solution for resolving this issue."
+            textAlign="center"
+            placeholderTextColor="gray"
+            style={styles.messageInput}
+            onChangeText={text => setMessage(text)}
+          />
+
+          <View
+            style={{
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'row',
+            }}>
+            {(priority != '' || category != '') &&
+            (message === '' || selectedImages === '') ? (
+              <Pressable style={styles.submitBtnE} onPress={save}>
+                <Text style={styles.btnText}>Save</Text>
+              </Pressable>
+            ) : (
+              <Pressable style={styles.submitBtnD}>
+                <Text style={styles.btnText}>Save</Text>
+              </Pressable>
+            )}
+            {message != '' && selectedImages != '' ? (
+              <Pressable style={styles.submitBtnE} onPress={submit}>
+                <Text style={styles.btnText}>Resolve</Text>
+              </Pressable>
+            ) : (
+              <Pressable style={styles.submitBtnD}>
+                <Text style={styles.btnText}>Resolve</Text>
+              </Pressable>
+            )}
+          </View>
         </View>
       </View>
 
@@ -396,20 +490,19 @@ function IssueScreen({navigation}) {
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
-    marginLeft: 20,
-    justifyContent: 'center',
+    backgroundColor: '#FF6767',
+    height: 150,
+    paddingTop: 10,
   },
   headerText: {
-    fontSize: 30,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: 'black',
+    color: 'white',
     marginLeft: 10,
-    marginTop: 5,
   },
   detailsText: {
-    fontSize: 15,
+    fontSize: 16,
     color: 'black',
-    fontWeight: 'bold',
   },
   detailsInText: {
     fontSize: 15,
@@ -421,11 +514,12 @@ const styles = StyleSheet.create({
     width: '90%',
     height: 150,
     borderWidth: 1,
-    borderColor: 'black',
+    borderColor: '#949494',
     marginTop: 20,
     justifyContent: 'center',
     alignItems: 'center',
     color: 'black',
+    borderRadius: 10,
   },
   submitBtnE: {
     width: 150,
@@ -479,6 +573,21 @@ const styles = StyleSheet.create({
   btnText: {
     color: 'white',
     textAlign: 'center',
+  },
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'black',
+    width: 14,
+    height: 14,
+    borderRadius: 14,
+  },
+  optionLabel: {
+    marginLeft: 2,
+  },
+  selectedOption: {
+    backgroundColor: 'green',
   },
 });
 

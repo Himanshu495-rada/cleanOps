@@ -21,9 +21,9 @@ import uploadingAnimation from '../../assets/uploading.json';
 import doneAnimation from '../../assets/done.json';
 import LottieView from 'lottie-react-native';
 import Back from '../../assets/Back.png';
-import Error from '../../assets/Error.png';
+import Requirement from '../../assets/Requirement.png';
 
-function ReportIssue({navigation}) {
+function RaiseRequest({navigation}) {
   const c = ['electrical', 'cleaning', 'civil', 'others'];
   const popAction = StackActions.pop(1);
 
@@ -141,43 +141,35 @@ function ReportIssue({navigation}) {
   };
 
   return (
-    <ScrollView>
+    <View>
       <View style={styles.header}>
         <TouchableOpacity onPress={back}>
           <FastImage source={Back} style={{width: 50, height: 50}} />
         </TouchableOpacity>
         <Text style={styles.headerText}>Report Issue</Text>
         <FastImage
-          source={Error}
+          source={Requirement}
           style={{
             width: 40,
             height: 40,
             marginLeft: 'auto',
             marginRight: 20,
-            marginTop: 10,
+            marginTop: 12,
           }}
         />
       </View>
 
       <View
-        style={{marginTop: -80, backgroundColor: 'white', borderRadius: 10}}>
+        style={{
+          marginTop: -80,
+          backgroundColor: 'white',
+          borderRadius: 10,
+          height: '90%',
+        }}>
         <View style={{marginHorizontal: 20, marginTop: 10}}>
           <Text style={{color: 'black'}}>
-            Capture/Upload the images of the scene where you found the problem,
-            and describe the problem, we will rectify it as soon as possible and
-            upload it in our page.
+            Request the things/issue to the management.
           </Text>
-        </View>
-        <View style={{marginLeft: 20, marginTop: 20, flexDirection: 'row'}}>
-          <Text style={styles.detailsText}>
-            Floor Name<Text style={{color: 'red'}}>*</Text> :-{' '}
-          </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter Floor Name"
-            placeholderTextColor="gray"
-            onChangeText={text => setFloor(text)}
-          />
         </View>
         <View
           style={{
@@ -186,7 +178,7 @@ function ReportIssue({navigation}) {
             flexDirection: 'row',
           }}>
           <Text style={styles.detailsText}>
-            Category<Text style={{color: 'red'}}>*</Text> :-
+            Department<Text style={{color: 'red'}}>*</Text> :-
           </Text>
           <View
             style={{
@@ -266,70 +258,6 @@ function ReportIssue({navigation}) {
         </View>
         <View style={{marginLeft: 20, marginTop: 20, flexDirection: 'row'}}>
           <Text style={styles.detailsText}>
-            Add Photos<Text style={{color: 'red'}}>*</Text> :-
-          </Text>
-        </View>
-        <View style={styles.uploadImage}>
-          <Text
-            style={{
-              color: 'gray',
-              marginLeft: 10,
-              marginTop: 10,
-              position: 'absolute',
-              top: 0,
-              left: 0,
-            }}>
-            MAX UPTO 5 IMAGES
-          </Text>
-          {selectedImages.length < 5 ? (
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
-              <Pressable style={styles.uploadIcons} onPress={openCamera}>
-                <Icon name="camera" size={35} color="gray" />
-                <Text style={{color: 'gray'}}>Capture</Text>
-              </Pressable>
-              <Text>OR</Text>
-              <Pressable style={styles.uploadIcons} onPress={openGallery}>
-                <Icon name="folder" size={35} color="gray" />
-                <Text style={{color: 'gray'}}>Upload</Text>
-              </Pressable>
-            </View>
-          ) : null}
-
-          <View style={{flexDirection: 'row'}}>
-            {selectedImages &&
-              selectedImages.map((item, index) => {
-                return (
-                  <View key={index} style={{margin: 5}}>
-                    <FastImage
-                      source={{uri: item}}
-                      style={{width: 50, height: 80}}
-                    />
-                    <Pressable
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        right: 0,
-                        backgroundColor: 'red',
-                        borderRadius: 50,
-                        width: 20,
-                        height: 20,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                      }}
-                      onPress={() => {
-                        let arr = selectedImages;
-                        arr.splice(index, 1);
-                        setSelectedImages([...arr]);
-                      }}>
-                      <Icon name="close" size={15} color="white" />
-                    </Pressable>
-                  </View>
-                );
-              })}
-          </View>
-        </View>
-        <View style={{marginLeft: 20, marginTop: 20, flexDirection: 'row'}}>
-          <Text style={styles.detailsText}>
             Description<Text style={{color: 'red'}}>*</Text> :-{' '}
           </Text>
         </View>
@@ -345,7 +273,14 @@ function ReportIssue({navigation}) {
           />
         </View>
 
-        <View style={{alignItems: 'center', justifyContent: 'center'}}>
+        <View
+          style={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'absolute',
+            bottom: 0,
+            alignSelf: 'center',
+          }}>
           {message != '' || selectedImages.length > 0 ? (
             <Pressable style={styles.submitBtnE} onPress={submit}>
               <Text style={{color: 'white', textAlign: 'center'}}>Submit</Text>
@@ -387,14 +322,14 @@ function ReportIssue({navigation}) {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
-    backgroundColor: '#B2110D',
+    backgroundColor: '#043767',
     height: 150,
     paddingTop: 20,
   },
@@ -417,7 +352,7 @@ const styles = StyleSheet.create({
   },
   messageInput: {
     width: '90%',
-    height: 150,
+    height: 250,
     borderWidth: 1,
     borderColor: '#949494',
     marginTop: 20,
@@ -512,4 +447,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ReportIssue;
+export default RaiseRequest;

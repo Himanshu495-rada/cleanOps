@@ -10,13 +10,7 @@ import IssueScreen from './screens/issueScreen/issueScreen';
 import ResolvedScreen from './screens/resolvedScreen/resolvedScreen';
 import ReportIssue from './screens/reportIssue/reportIssue';
 import ResolvedScreen2 from './screens/admin2/resolvedScreen2';
-// client 2
-import C2Admin from './screens/client2/c2admin/admin';
-import C2Admin2 from './screens/client2/c2admin2/admin2';
-import C2IssueScreen from './screens/client2/c2issueScreen/issueScreen';
-import C2ResolvedScreen from './screens/client2/c2resolvedScreen/resolvedScreen';
-import C2ReportIssue from './screens/client2/c2reportIssue/reportIssue';
-import C2ResolvedScreen2 from './screens/client2/c2admin2/resolvedScreen2';
+import RaiseRequest from './screens/raiseRequest/raiseRequest';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,11 +21,6 @@ function App(): JSX.Element {
         <Stack.Screen
           name="Splash"
           component={SplashScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="Login"
-          component={Login}
           options={{headerShown: false}}
         />
         <Stack.Screen
@@ -64,35 +53,9 @@ function App(): JSX.Element {
           component={ResolvedScreen2}
           options={{headerShown: false}}
         />
-        {/* client 2 */}
         <Stack.Screen
-          name="C2Admin"
-          component={C2Admin}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="C2Admin2"
-          component={C2Admin2}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="C2IssueScreen"
-          component={C2IssueScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="C2ResolvedScreen"
-          component={C2ResolvedScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="C2ReportIssue"
-          component={C2ReportIssue}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="C2ResolvedScreen2"
-          component={C2ResolvedScreen2}
+          name="RaiseRequest"
+          component={RaiseRequest}
           options={{headerShown: false}}
         />
       </Stack.Navigator>
