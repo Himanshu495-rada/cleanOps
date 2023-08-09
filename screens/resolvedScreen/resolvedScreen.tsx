@@ -10,35 +10,20 @@ import {StackActions} from '@react-navigation/native';
 import Checkmark from '../../assets/Checkmark.png';
 import Back from '../../assets/Back.png';
 import FastImage from 'react-native-fast-image';
-import PocketBase from 'pocketbase';
-import {REACT_APP_URL} from '@env';
+import {REACT_APP_URL, REACT_APP_URL2} from '@env';
 import CarouselView from '../components/carousel';
 import {useRoute} from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function ResolvedScreen({navigation}) {
   const route = useRoute();
-  const {id} = route.params;
-
-  const pb = new PocketBase(REACT_APP_URL);
+  const {data} = route.params;
   const popAction = StackActions.pop(1);
-
-  const [data, setData] = useState({
-    id: '',
-    created: '',
-    description: '',
-    status: '',
-    floor: '',
-    priority: '',
-    category: '',
-    images: [],
-    solution: '',
-    result: '',
-  });
+  const [issueTable, setIssueTable] = useState('');
 
   async function collectData() {
-    let record = await pb.collection('issues').getOne(id);
-    setData(record);
-    console.log(record);
+    let i_table = await AsyncStorage.getItem('issueTable');
+    setIssueTable(i_table);
   }
 
   function back() {
@@ -71,7 +56,7 @@ function ResolvedScreen({navigation}) {
             marginTop: 20,
             alignItems: 'center',
           }}>
-          <CarouselView images={data.images} id={data.id} />
+          <CarouselView data={{images: data.images, id: data.id}} />
         </View>
         <View style={{marginLeft: 20, marginVertical: 20}}>
           <Text style={styles.detailsText}>
@@ -101,13 +86,17 @@ function ResolvedScreen({navigation}) {
           <Text style={styles.detailsText}>Result Image :- </Text>
           <View style={styles.messageInput}>
             {data.result === '' ? (
-              <Text style={{textAlign: 'center'}}>No Result Image</Text>
+              <Text style={{textAlign: 'center', color: 'black'}}>
+                No Result Image
+              </Text>
             ) : (
               <FastImage
                 source={{
                   uri:
-                    'http://68.178.168.6:8090' +
-                    '/api/files/issues/' +
+                    REACT_APP_URL +
+                    '/api/files/' +
+                    issueTable +
+                    '/' +
                     data.id +
                     '/' +
                     data.result,

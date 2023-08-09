@@ -3,12 +3,11 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  Pressable,
-  Image,
+  TouchableOpacity,
   Text,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import {REACT_APP_URL} from '@env';
 import FastImage from 'react-native-fast-image';
 import {useNavigation} from '@react-navigation/native';
 
@@ -48,16 +47,16 @@ function Table(props) {
   const [issueTable, setIssueTable] = useState('');
 
   async function btnPress(arr, ind) {
+    console.log(arr[ind]);
     let userName = await AsyncStorage.getItem('role');
     if (arr[ind].status === true) {
       if (userName === 'Admin') {
-        console.log("Admin's resolved screen");
-        navigation.navigate('ResolvedScreen', {id: arr[ind].id});
+        navigation.navigate('ResolvedScreen', {data: arr[ind]});
       } else if (userName === 'Higher Authority') {
-        navigation.navigate('ResolvedScreen2', {id: arr[ind].id});
+        navigation.navigate('ResolvedScreen2', {data: arr[ind]});
       }
     } else {
-      navigation.navigate('IssueScreen', {id: arr[ind].id});
+      navigation.navigate('IssueScreen', {data: arr[ind]});
     }
   }
 
@@ -99,7 +98,6 @@ function Table(props) {
 
   useEffect(() => {
     getIssueTable();
-    console.log('table', issueTable);
   }, []);
 
   return (
@@ -108,12 +106,12 @@ function Table(props) {
         {props.data.map((record, index) => {
           if (record.priority === 'high' && record.status === false) {
             return (
-              <Pressable
+              <TouchableOpacity
                 onPress={() => btnPress(props.data, index)}
                 key={index}>
                 <TableRow
                   image={
-                    'http://68.178.168.6:8090' +
+                    REACT_APP_URL +
                     '/api/files/' +
                     issueTable +
                     '/' +
@@ -131,16 +129,16 @@ function Table(props) {
                   }
                   color={'red'}
                 />
-              </Pressable>
+              </TouchableOpacity>
             );
           } else if (record.priority === 'normal' && record.status === false) {
             return (
-              <Pressable
+              <TouchableOpacity
                 onPress={() => btnPress(props.data, index)}
                 key={index}>
                 <TableRow
                   image={
-                    'http://68.178.168.6:8090' +
+                    REACT_APP_URL +
                     '/api/files/' +
                     issueTable +
                     '/' +
@@ -156,18 +154,18 @@ function Table(props) {
                       ? 'No description'
                       : record.description
                   }
-                  color={'#0xFF949494'}
+                  color={'#FDB019C7'}
                 />
-              </Pressable>
+              </TouchableOpacity>
             );
           } else if (record.priority === 'invalid' && record.status === true) {
             return (
-              <Pressable
+              <TouchableOpacity
                 onPress={() => btnPress(props.data, index)}
                 key={index}>
                 <TableRow
                   image={
-                    'http://68.178.168.6:8090' +
+                    REACT_APP_URL +
                     '/api/files/' +
                     issueTable +
                     '/' +
@@ -183,18 +181,18 @@ function Table(props) {
                       ? 'No description'
                       : record.description
                   }
-                  color={'black'}
+                  color={'#949494'}
                 />
-              </Pressable>
+              </TouchableOpacity>
             );
           } else if (record.status === true) {
             return (
-              <Pressable
+              <TouchableOpacity
                 onPress={() => btnPress(props.data, index)}
                 key={index}>
                 <TableRow
                   image={
-                    'http://68.178.168.6:8090' +
+                    REACT_APP_URL +
                     '/api/files/' +
                     issueTable +
                     '/' +
@@ -218,7 +216,7 @@ function Table(props) {
                   }
                   color={'#80FF9C'}
                 />
-              </Pressable>
+              </TouchableOpacity>
             );
           }
         })}
@@ -317,6 +315,7 @@ const styles = StyleSheet.create({
   },
   issueText: {
     fontSize: 14,
+    color: 'black',
   },
 });
 

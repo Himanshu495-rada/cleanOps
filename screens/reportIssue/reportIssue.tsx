@@ -16,12 +16,13 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import FastImage from 'react-native-fast-image';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import PocketBase from 'pocketbase';
-import {REACT_APP_URL} from '@env';
+import {REACT_APP_URL, REACT_APP_URL2} from '@env';
 import uploadingAnimation from '../../assets/uploading.json';
 import doneAnimation from '../../assets/done.json';
 import LottieView from 'lottie-react-native';
 import Back from '../../assets/Back.png';
 import Error from '../../assets/Error.png';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function ReportIssue({navigation}) {
   const c = ['electrical', 'cleaning', 'civil', 'others'];
@@ -41,6 +42,8 @@ function ReportIssue({navigation}) {
   const [selectedImages, setSelectedImages] = useState([]);
   const [category, setCategory] = useState('others');
   const pb = new PocketBase(REACT_APP_URL);
+  const [issueTable, setIssueTable] = useState('');
+  const [tokenTable, setTokenTable] = useState('');
 
   const options2 = [
     {id: 1, label: 'Electrical'},
@@ -95,8 +98,21 @@ function ReportIssue({navigation}) {
   };
 
   async function pushNotify() {
-    const response = await fetch('http://68.178.168.6:8080/notify');
-    const data = response.text();
+    console.log('pushing notification');
+    let headersList = {
+      Accept: '*/*',
+      'Content-Type': 'application/json',
+    };
+    let bodyContent = JSON.stringify({
+      table: tokenTable,
+    });
+    let response = await fetch(REACT_APP_URL2 + '/notify', {
+      method: 'POST',
+      body: bodyContent,
+      headers: headersList,
+    });
+
+    let data = await response.text();
     console.log(data);
   }
 
@@ -116,7 +132,7 @@ function ReportIssue({navigation}) {
     });
     handleModalShow3();
     console.log(formData);
-    const record = await pb.collection('issues').create(formData);
+    const record = await pb.collection(issueTable).create(formData);
     console.log(record);
     if (record) {
       pushNotify();
@@ -139,6 +155,17 @@ function ReportIssue({navigation}) {
     setSelectedOption2(id);
     setCategory(c[id - 1]);
   };
+
+  async function collectData() {
+    let i_table = await AsyncStorage.getItem('issueTable');
+    setIssueTable(i_table);
+    let t_table = await AsyncStorage.getItem('tokenTable');
+    setTokenTable(t_table);
+  }
+
+  useEffect(() => {
+    collectData();
+  }, []);
 
   return (
     <ScrollView>
@@ -506,6 +533,7 @@ const styles = StyleSheet.create({
   },
   optionLabel: {
     marginLeft: 2,
+    color: 'black',
   },
   selectedOption: {
     backgroundColor: 'green',

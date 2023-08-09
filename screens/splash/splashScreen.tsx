@@ -77,6 +77,7 @@ function SplashScreen({navigation}) {
         let name = pb.authStore.model.name;
         let role = pb.authStore.model.designation;
         let issueTable = pb.authStore.model.issueTable;
+        let tokenTable = pb.authStore.model.tokenTable;
         let avtar =
           REACT_APP_URL +
           '/api/files/users/' +
@@ -93,6 +94,7 @@ function SplashScreen({navigation}) {
         await AsyncStorage.setItem('login', 'true');
         await AsyncStorage.setItem('role', role);
         await AsyncStorage.setItem('issueTable', issueTable);
+        await AsyncStorage.setItem('tokenTable', tokenTable);
         ToastAndroid.show('Logged in', ToastAndroid.SHORT);
         check();
       } else {
@@ -288,6 +290,8 @@ const styles = StyleSheet.create({
   },
   input: {
     fontSize: 18,
+    color: 'black',
+    width: 200,
   },
   loginButton: {
     backgroundColor: '#5084D2',

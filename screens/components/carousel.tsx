@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import Carousel from 'react-native-snap-carousel';
 import {
   View,
@@ -9,11 +9,15 @@ import {
 } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import Close from '../../assets/Close.png';
+import {REACT_APP_URL} from '@env';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-function CarouselView(props) {
-  let images = props.images;
+function CarouselView({data}) {
+  const images = data.images;
+  const id = data.id;
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [issueTable, setIssueTable] = useState('');
   const handleModalShow = () => setModalVisible(true);
   const handleModalHide = () => setModalVisible(false);
 
@@ -23,6 +27,17 @@ function CarouselView(props) {
     setModalImage(image);
     handleModalShow();
   }
+
+  async function getIssueTable() {
+    let i_table = await AsyncStorage.getItem('issueTable');
+    console.log(i_table);
+    setIssueTable(i_table);
+  }
+
+  useEffect(() => {
+    getIssueTable();
+    console.log(REACT_APP_URL + '/api/files/' + issueTable + '/' + id + '/');
+  }, []);
 
   return (
     <>
@@ -36,9 +51,11 @@ function CarouselView(props) {
             style={styles.img}
             onPress={() =>
               handleModalImageChange(
-                'http://68.178.168.6:8090' +
-                  '/api/files/issues/' +
-                  props.id +
+                REACT_APP_URL +
+                  '/api/files/' +
+                  issueTable +
+                  '/' +
+                  id +
                   '/' +
                   item,
               )
@@ -46,9 +63,11 @@ function CarouselView(props) {
             <FastImage
               source={{
                 uri:
-                  'http://68.178.168.6:8090' +
-                  '/api/files/issues/' +
-                  props.id +
+                  REACT_APP_URL +
+                  '/api/files/' +
+                  issueTable +
+                  '/' +
+                  id +
                   '/' +
                   item,
               }}

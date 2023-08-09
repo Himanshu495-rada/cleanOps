@@ -15,8 +15,8 @@ import Card from '../components/card';
 import Table from '../components/table';
 import PocketBase from 'pocketbase';
 import {REACT_APP_URL} from '@env';
-import {Skeleton} from '@rneui/themed';
 import FastImage from 'react-native-fast-image';
+import {CommonActions} from '@react-navigation/native';
 
 function Admin({navigation}) {
   const [userName, setUserName] = useState('');
@@ -35,12 +35,16 @@ function Admin({navigation}) {
   const [cardClicked4, setCardClicked4] = useState(false);
   const [lstData, setLstData] = useState([]);
   const [issueTable, setIssueTable] = useState('');
+  const [tokenTable, setTokenTable] = useState('');
 
   const pb = new PocketBase(REACT_APP_URL);
 
   async function collectData() {
     let i_table = await AsyncStorage.getItem('issueTable');
     setIssueTable(i_table);
+    let t_table: string | null = await AsyncStorage.getItem('tokenTable');
+    submitToken(t_table);
+    setTokenTable(t_table);
     let loginStatus = await AsyncStorage.getItem('login');
     if (loginStatus === 'true') {
       let credentials = await AsyncStorage.getItem('credentials');
@@ -98,23 +102,30 @@ function Admin({navigation}) {
 
   async function logout() {
     await AsyncStorage.removeItem('credentials');
-    const tokenID = await AsyncStorage.getItem('fcmTokenID');
-    await AsyncStorage.removeItem('fcmTokenID');
+    let tokenID: string | null = await AsyncStorage.getItem('fcmTokenID');
     try {
-      await pb.collection('tokens').delete(tokenID);
+      await pb.collection(tokenTable).delete(tokenID);
     } catch {
       console.log('error to delete token');
     }
+    await AsyncStorage.removeItem('fcmTokenID');
     ToastAndroid.show('Logged out', ToastAndroid.SHORT);
-    navigation.navigate('Splash');
+    setModalVisible(false);
+    const resetAction = CommonActions.reset({
+      index: 0,
+      routes: [{name: 'Splash'}],
+    });
+
+    navigation.dispatch(resetAction);
   }
 
-  async function submitToken() {
+  async function submitToken(table) {
     const token = await AsyncStorage.getItem('fcmToken');
     const data = {
       token: token,
     };
-    const record = await pb.collection('tokens').create(data);
+    console.log('Adding token to ' + table);
+    const record = await pb.collection(table).create(data);
     console.log(record);
     if (record) {
       const tokenID = record.id;
@@ -131,7 +142,6 @@ function Admin({navigation}) {
 
   useEffect(() => {
     collectData();
-    submitToken();
   }, []);
   return (
     <View>
@@ -360,6 +370,7 @@ const styles = StyleSheet.create({
   modalText: {
     fontSize: 20,
     marginBottom: 20,
+    color: 'black',
   },
   modalButtonsContainer: {
     flexDirection: 'row',

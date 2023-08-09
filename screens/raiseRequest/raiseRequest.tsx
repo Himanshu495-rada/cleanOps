@@ -281,7 +281,7 @@ function RaiseRequest({navigation}) {
             bottom: 0,
             alignSelf: 'center',
           }}>
-          {message != '' || selectedImages.length > 0 ? (
+          {/* {message != '' || selectedImages.length > 0 ? (
             <Pressable style={styles.submitBtnE} onPress={submit}>
               <Text style={{color: 'white', textAlign: 'center'}}>Submit</Text>
             </Pressable>
@@ -289,7 +289,10 @@ function RaiseRequest({navigation}) {
             <Pressable style={styles.submitBtnD}>
               <Text style={{color: 'white', textAlign: 'center'}}>Submit</Text>
             </Pressable>
-          )}
+          )} */}
+          <Pressable style={styles.submitBtnD}>
+            <Text style={{color: 'white', textAlign: 'center'}}>Submit</Text>
+          </Pressable>
         </View>
       </View>
 
@@ -441,6 +444,7 @@ const styles = StyleSheet.create({
   },
   optionLabel: {
     marginLeft: 2,
+    color: 'black',
   },
   selectedOption: {
     backgroundColor: 'green',

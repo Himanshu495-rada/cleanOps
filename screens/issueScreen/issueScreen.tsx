@@ -12,10 +12,9 @@ import {
   ToastAndroid,
   TouchableOpacity,
 } from 'react-native';
-import SelectDropdown from 'react-native-select-dropdown';
 import FastImage from 'react-native-fast-image';
 import PocketBase from 'pocketbase';
-import {REACT_APP_URL} from '@env';
+import {REACT_APP_URL, REACT_APP_URL2} from '@env';
 import CarouselView from '../components/carousel';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
@@ -24,12 +23,12 @@ import doneAnimation from '../../assets/done.json';
 import LottieView from 'lottie-react-native';
 import Back from '../../assets/Back.png';
 import High_Priority from '../../assets/High_Priority.png';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function IssueScreen({navigation}) {
   const popAction = StackActions.pop(1);
   const route = useRoute();
-  const {id} = route.params;
-  //const id = 'ialjqrw64603tgw';
+  const {data} = route.params;
   const pb = new PocketBase(REACT_APP_URL);
   const p = ['high', 'normal', 'invalid'];
   const c = ['electrical', 'cleaning', 'civil', 'others'];
@@ -42,21 +41,17 @@ function IssueScreen({navigation}) {
   const handleModalShow4 = () => setModalVisible4(true);
   const handleModalHide4 = () => setModalVisible4(false);
 
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [selectedOption2, setSelectedOption2] = useState(null);
+  const [issueTable, setIssueTable] = useState('');
+  const [tokenTable, setTokenTable] = useState('');
+  const [selectedOption, setSelectedOption] = useState(
+    p.indexOf(data.priority) + 1,
+  );
+  const [selectedOption2, setSelectedOption2] = useState(
+    c.indexOf(data.category) + 1,
+  );
   const [message, setMessage] = useState('');
   const [selectedImages, setSelectedImages] = useState([]);
   const [category, setCategory] = useState('');
-  const [data, setData] = useState({
-    id: '',
-    created: '',
-    description: '',
-    status: '',
-    floor: '',
-    priority: '',
-    category: category,
-    images: [],
-  });
   const [priority, setPriority] = useState('');
 
   const options = [
@@ -84,11 +79,10 @@ function IssueScreen({navigation}) {
   };
 
   async function collectData() {
-    let record = await pb.collection('issues').getOne(id);
-    setData(record);
-    setSelectedOption(p.indexOf(record.priority) + 1);
-    setSelectedOption2(c.indexOf(record.category) + 1);
-    console.log(c.indexOf(record.category) + 1);
+    let i_table = await AsyncStorage.getItem('issueTable');
+    setIssueTable(i_table);
+    let t_table = await AsyncStorage.getItem('tokenTable');
+    setTokenTable(t_table);
   }
 
   const handleMessageChange = e => {
@@ -142,8 +136,20 @@ function IssueScreen({navigation}) {
   };
 
   async function pushNotify() {
-    const response = await fetch('http://68.178.168.6:8080/resolved');
-    const data = response.text();
+    let headersList = {
+      Accept: '*/*',
+      'Content-Type': 'application/json',
+    };
+    let bodyContent = JSON.stringify({
+      table: tokenTable,
+    });
+    let response = await fetch(REACT_APP_URL2 + '/resolved', {
+      method: 'POST',
+      body: bodyContent,
+      headers: headersList,
+    });
+
+    let data = await response.text();
     console.log(data);
   }
 
@@ -164,20 +170,16 @@ function IssueScreen({navigation}) {
       formData.append('priority', data.priority);
     }
     if (category != '') {
-      console.log('Yes');
-      console.log(c[parseInt(category)]);
       formData.append('category', c[parseInt(category)]);
     } else {
       formData.append('category', data.category);
     }
 
     formData.append('status', true);
-    console.log(formData);
-    console.log(data.category);
 
     handleModalShow3();
 
-    const record = await pb.collection('issues').update(data.id, formData);
+    const record = await pb.collection(issueTable).update(data.id, formData);
     if (record) {
       pushNotify();
       handleModalHide3();
@@ -193,7 +195,12 @@ function IssueScreen({navigation}) {
     const formData = new FormData();
 
     if (priority != '') {
-      formData.append('priority', p[parseInt(priority)]);
+      if (parseInt(priority) == 2) {
+        formData.append('priority', p[parseInt(priority)]);
+        formData.append('status', true);
+      } else {
+        formData.append('priority', p[parseInt(priority)]);
+      }
     } else {
       formData.append('priority', data.priority);
     }
@@ -203,7 +210,7 @@ function IssueScreen({navigation}) {
       formData.append('category', data.category);
     }
     console.log(formData);
-    const record = await pb.collection('issues').update(data.id, formData);
+    const record = await pb.collection(issueTable).update(data.id, formData);
     if (record) {
       ToastAndroid.show('Issue Updated', ToastAndroid.SHORT);
       navigation.dispatch(popAction);
@@ -252,7 +259,7 @@ function IssueScreen({navigation}) {
             justifyContent: 'center',
             marginTop: 20,
           }}>
-          <CarouselView images={data.images} id={data.id} />
+          <CarouselView data={{images: data.images, id: data.id}} />
           <View style={{marginHorizontal: 20}}>
             <Text style={{color: 'black', fontSize: 14, marginTop: 10}}>
               {data.description}
@@ -585,6 +592,7 @@ const styles = StyleSheet.create({
   },
   optionLabel: {
     marginLeft: 2,
+    color: 'black',
   },
   selectedOption: {
     backgroundColor: 'green',

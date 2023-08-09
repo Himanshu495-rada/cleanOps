@@ -3,28 +3,24 @@ import {
   View,
   Text,
   StyleSheet,
-  ImageBackground,
   Image,
   TouchableOpacity,
   ToastAndroid,
   ScrollView,
   RefreshControl,
+  Modal,
 } from 'react-native';
-import PocketBase from 'pocketbase';
-import {REACT_APP_URL} from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Card from '../components/card';
 import Table from '../components/table';
+import PocketBase from 'pocketbase';
+import {REACT_APP_URL} from '@env';
 import FastImage from 'react-native-fast-image';
+import {CommonActions} from '@react-navigation/native';
 
 function Admin2({navigation}) {
-  const pb = new PocketBase(REACT_APP_URL);
   const [userName, setUserName] = useState('');
   const [role, setRole] = useState('');
-  const [avtar, setAvtar] = useState(
-    'https://www.google.com/url?sa=i&url=https%3A%2F%2Fpixabay.com%2Fvectors%2Fblank-profile-picture-mystery-man-973460%2F&psig=AOvVaw3JTWdSSJKAxIhCznFLmD7Z&ust=1681810602823000&source=images&cd=vfe&ved=0CBEQjRxqFwoTCLDk7O7OsP4CFQAAAAAdAAAAABAE',
-  );
-
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [records, setRecords] = useState([]);
@@ -38,8 +34,17 @@ function Admin2({navigation}) {
   const [cardClicked3, setCardClicked3] = useState(false);
   const [cardClicked4, setCardClicked4] = useState(false);
   const [lstData, setLstData] = useState([]);
+  const [issueTable, setIssueTable] = useState('');
+  const [tokenTable, setTokenTable] = useState('');
+
+  const pb = new PocketBase(REACT_APP_URL);
 
   async function collectData() {
+    let i_table = await AsyncStorage.getItem('issueTable');
+    setIssueTable(i_table);
+    let t_table = await AsyncStorage.getItem('tokenTable');
+    submitToken(t_table);
+    setTokenTable(t_table);
     let loginStatus = await AsyncStorage.getItem('login');
     if (loginStatus === 'true') {
       let credentials = await AsyncStorage.getItem('credentials');
@@ -49,24 +54,17 @@ function Admin2({navigation}) {
         if (pb.authStore.isValid) {
           let name = pb.authStore.model.name;
           let role = pb.authStore.model.designation;
-          let avtar =
-            REACT_APP_URL +
-            '/api/files/users/' +
-            pb.authStore.model.id +
-            '/' +
-            pb.authStore.model.avatar;
           setUserName(name);
           setRole(role);
-          setAvtar(avtar);
         }
       }
 
       const data = await pb
-        .collection('issues')
+        .collection(i_table)
         .getFullList(200 /* batch size */, {
           sort: '-created',
         });
-      //console.log(data);
+
       setRecords(data);
 
       const data2 = [];
@@ -104,23 +102,30 @@ function Admin2({navigation}) {
 
   async function logout() {
     await AsyncStorage.removeItem('credentials');
-    const tokenID = await AsyncStorage.getItem('fcmTokenID');
-    await AsyncStorage.removeItem('fcmTokenID');
+    let tokenID: string | null = await AsyncStorage.getItem('fcmTokenID');
     try {
-      await pb.collection('tokens').delete(tokenID);
+      await pb.collection(tokenTable).delete(tokenID);
     } catch {
       console.log('error to delete token');
     }
+    await AsyncStorage.removeItem('fcmTokenID');
     ToastAndroid.show('Logged out', ToastAndroid.SHORT);
-    navigation.navigate('Splash');
+    setModalVisible(false);
+    const resetAction = CommonActions.reset({
+      index: 0,
+      routes: [{name: 'Splash'}],
+    });
+
+    navigation.dispatch(resetAction);
   }
 
-  async function submitToken() {
+  async function submitToken(table) {
     const token = await AsyncStorage.getItem('fcmToken');
     const data = {
       token: token,
     };
-    const record = await pb.collection('tokens').create(data);
+    console.log('Adding token to ' + table);
+    const record = await pb.collection(table).create(data);
     console.log(record);
     if (record) {
       const tokenID = record.id;
@@ -137,14 +142,31 @@ function Admin2({navigation}) {
 
   useEffect(() => {
     collectData();
-    submitToken();
   }, []);
   return (
     <View>
+      <Modal visible={modalVisible} transparent={true}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalText}>
+              Are you sure you want to logout?
+            </Text>
+            <View style={styles.modalButtonsContainer}>
+              <TouchableOpacity onPress={logout}>
+                <Text style={styles.modalButton}>Yes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <Text style={styles.modalButton}>No</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={collectData} />
-        }>
+        }
+        style={{backgroundColor: 'white'}}>
         <View style={styles.header}>
           <Image
             source={require('../../assets/Administrator_Male.png')}
@@ -239,25 +261,38 @@ function Admin2({navigation}) {
               />
             </TouchableOpacity>
           </View>
-          <View style={styles.row2}>
-            <TouchableOpacity
-              onPress={() => {
-                setLstData(recordInvalid);
-                setCardClicked(true);
-              }}>
-              <Text style={styles.invalidBtn}>
-                Invalid Issues: {recordInvalid.length}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.issueBtn}
-              onPress={() => navigation.navigate('ReportIssue')}>
-              <Text style={{fontSize: 15, color: 'white'}}>REPORT ISSUE</Text>
-            </TouchableOpacity>
-          </View>
-
-          {cardClicked ? <Table data={lstData} /> : <Table data={records} />}
         </View>
+        <View style={styles.row2}>
+          <TouchableOpacity
+            onPress={() => {
+              setLstData(recordInvalid);
+              setCardClicked(true);
+            }}>
+            <Text
+              style={{
+                color: '#043767',
+                textDecorationLine: 'underline',
+                marginLeft: 20,
+                fontSize: 16,
+              }}>
+              Invalid Issues: {recordInvalid.length}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.row2}>
+          <TouchableOpacity
+            style={styles.reqBtn}
+            onPress={() => navigation.navigate('RaiseRequest')}>
+            <Text style={{fontSize: 15, color: 'white'}}>RAISE REQUEST</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.issueBtn}
+            onPress={() => navigation.navigate('ReportIssue')}>
+            <Text style={{fontSize: 15, color: 'white'}}>REPORT ISSUE</Text>
+          </TouchableOpacity>
+        </View>
+
+        {cardClicked ? <Table data={lstData} /> : <Table data={records} />}
       </ScrollView>
     </View>
   );
@@ -272,11 +307,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatar: {
-    height: 80,
-    width: 80,
+    height: 50,
+    width: 50,
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
-    marginBottom: 45,
+    marginBottom: 25,
+    marginLeft: 20,
   },
   userName: {
     fontSize: 20,
@@ -284,7 +320,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   role: {
-    fontSize: 35,
+    fontSize: 25,
     color: 'white',
     flex: 1,
     textAlign: 'center',
@@ -296,34 +332,54 @@ const styles = StyleSheet.create({
     marginBottom: 50,
   },
   row2: {
-    flexDirection: 'row',
     marginTop: 20,
+    flexDirection: 'row',
   },
   reqBtn: {
-    backgroundColor: 'green',
-    width: '40%',
-    height: 30,
-    borderRadius: 15,
+    flex: 1,
+    backgroundColor: '#043767',
+    width: 150,
+    height: 40,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 50,
-  },
-  invalidBtn: {
-    color: '#0EA6D6',
-    textDecorationLine: 'underline',
-    marginLeft: 20,
-    fontSize: 18,
+    marginHorizontal: 10,
   },
   issueBtn: {
+    flex: 1,
     backgroundColor: '#B2110D',
     width: 150,
     height: 40,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 50,
-    alignSelf: 'center',
+    marginHorizontal: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalText: {
+    fontSize: 20,
+    marginBottom: 20,
+    color: 'black',
+  },
+  modalButtonsContainer: {
+    flexDirection: 'row',
+    marginLeft: 'auto',
+  },
+  modalButton: {
+    fontSize: 16,
+    color: 'black',
+    marginHorizontal: 10,
   },
 });
-
 export default Admin2;
